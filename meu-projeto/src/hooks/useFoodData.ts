@@ -15,7 +15,7 @@ interface FoodData {
   error: string | null;
 }
 
-const SPOONACULAR_API_KEY = 'demo-key'; // Em produção, usar variável de ambiente
+const SPOONACULAR_API_KEY = '9b7d7acc85d3471dba3f2c0066a2b8e6';
 
 export const useFoodData = (): FoodData => {
   const [foodData, setFoodData] = useState<FoodData>({
@@ -30,64 +30,36 @@ export const useFoodData = (): FoodData => {
       try {
         setFoodData(prev => ({ ...prev, isLoading: true }));
 
-        // Para demo, usando dados mockados já que a API Spoonacular requer chave válida
-        const mockRecipes: Recipe[] = [
-          {
-            id: 1,
-            title: "Pasta Carbonara Gourmet",
-            image: "https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400&h=300&fit=crop",
-            readyInMinutes: 20,
-            cuisines: ["Italian"]
-          },
-          {
-            id: 2,
-            title: "Salmão Grelhado com Legumes",
-            image: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop",
-            readyInMinutes: 25,
-            cuisines: ["Mediterranean"]
-          },
-          {
-            id: 3,
-            title: "Hambúrguer Artesanal Premium",
-            image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
-            readyInMinutes: 15,
-            cuisines: ["American"]
-          },
-          {
-            id: 4,
-            title: "Sushi Tradicional",
-            image: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&h=300&fit=crop",
-            readyInMinutes: 30,
-            cuisines: ["Japanese"]
-          },
-          {
-            id: 5,
-            title: "Paella Valenciana",
-            image: "https://images.unsplash.com/photo-1534080564583-6be75777b70a?w=400&h=300&fit=crop",
-            readyInMinutes: 35,
-            cuisines: ["Spanish"]
-          },
-          {
-            id: 6,
-            title: "Pad Thai Autêntico",
-            image: "https://images.unsplash.com/photo-1559847844-d720000b3244?w=400&h=300&fit=crop",
-            readyInMinutes: 20,
-            cuisines: ["Thai"]
-          }
-        ];
+        // Buscar receitas aleatórias da API Spoonacular
+        const randomRecipesResponse = await fetch(
+          `https://api.spoonacular.com/recipes/random?apiKey=${SPOONACULAR_API_KEY}&number=6&addRecipeInformation=true`
+        );
 
-        const mockCuisines = [
+        if (!randomRecipesResponse.ok) {
+          throw new Error('Erro ao buscar receitas');
+        }
+
+        const randomRecipesData = await randomRecipesResponse.json();
+        
+        // Mapear dados da API para o formato esperado
+        const featuredDishes: Recipe[] = randomRecipesData.recipes.map((recipe: any) => ({
+          id: recipe.id,
+          title: recipe.title,
+          image: recipe.image,
+          readyInMinutes: recipe.readyInMinutes,
+          cuisines: recipe.cuisines || []
+        }));
+
+        // Lista de tipos de cozinha populares
+        const cuisineTypes = [
           "Italiana", "Japonesa", "Brasileira", "Mexicana", "Chinesa", "Tailandesa",
           "Indiana", "Francesa", "Mediterrânea", "Americana", "Árabe", "Espanhola",
           "Peruana", "Coreana", "Grega", "Turca", "Vegetariana", "Vegana"
         ];
 
-        // Simular delay da API
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         setFoodData({
-          featuredDishes: mockRecipes,
-          cuisineTypes: mockCuisines,
+          featuredDishes,
+          cuisineTypes,
           isLoading: false,
           error: null
         });
